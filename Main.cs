@@ -50,6 +50,7 @@ namespace Social_Justice_Callouts
         private static void RegisterCallouts()
         {
             Functions.RegisterCallout(typeof(Callouts.StolenVehicle));
+            Functions.RegisterCallout(typeof(Callouts.Karen));
         }
     }
 }

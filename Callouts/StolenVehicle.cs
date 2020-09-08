@@ -2,6 +2,7 @@
 using LSPD_First_Response.Mod.API;
 using LSPD_First_Response.Mod.Callouts;
 using LSPD_First_Response.Engine.Scripting.Entities;
+using Rage.Native;
 
 namespace Social_Justice_Callouts.Callouts
 {
@@ -18,6 +19,7 @@ namespace Social_Justice_Callouts.Callouts
         public override bool OnBeforeCalloutDisplayed()
         {
             spawnPoint = World.GetNextPositionOnStreet(Game.LocalPlayer.Character.Position.Around(250f));
+            
 
             ShowCalloutAreaBlipBeforeAccepting(spawnPoint, 30f);
             AddMinimumDistanceCheck(20f, spawnPoint);
