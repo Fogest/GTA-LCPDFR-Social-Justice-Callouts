@@ -42,7 +42,7 @@ namespace Social_Justice_Callouts.Callouts
         private readonly List<string> dialogWithPed = new List<string>()
                 {
                     "~r~Customer~w~: THIS IDIOT IS TRYING TO RIP ME OFF!",
-                    "~b~Officer~w~: Okay, I am going to need to calm down and explain what happened.",
+                    "~b~Officer~w~: Okay, I am going to need you to calm down and explain what happened.",
                     "~r~Customer~w~: ALL YOU NEED TO KNOW IS THIS FUCKER NEEDS TO GIVE MY MONEY BACK",
                     "~o~Attendant~w~: Officer, they have been yelling at me for the last 10 minutes and refuses to leave the store.",
                     "~o~Attendant~w~: They bought and ate two hotdogs and are now asking for their money back for them.",
@@ -130,27 +130,29 @@ namespace Social_Justice_Callouts.Callouts
                 Random r = new Random();
                 int chance = r.Next(0, 100);
 
-                Game.DisplayNotification("Starting SituationLeaveAggressively()");
-
-                //SituationLeavePeacefully();    -- CHECKED, seems to work quite well, should be good to go!
-                //SituationLeaveAggressively();  -- CHECKED, works, just needs a bit of cleaning up.
+                //SituationLeavePeacefully();    -- CHECKED, works
+                //SituationLeaveAggressively();  -- CHECKED, works
                 //SituationLeaveViolently();     -- CHECKED, works
-                //SituationLeaveViolently(true); -- CHECKED, works, though people tazed seem to still sit up and keep shooting back
+                //SituationLeaveViolently(true); -- CHECKED, works
 
                 if (chance < 30)
                 {
+                    Game.DisplayNotification("Starting SituationLeavePeacefully()");
                     SituationLeavePeacefully();
                 }
                 else if (chance < 60)
                 {
+                    Game.DisplayNotification("Starting SituationLeaveAggressively()");
                     SituationLeaveAggressively();
                 }
                 else if (chance < 85)
                 {
+                    Game.DisplayNotification("Starting SituationLeaveViolently()");
                     SituationLeaveViolently();
                 }
                 else
                 {
+                    Game.DisplayNotification("Starting SituationLeaveViolently(true)");
                     SituationLeaveViolently(true);
                 }
 
@@ -164,6 +166,7 @@ namespace Social_Justice_Callouts.Callouts
             if (karen.IsRagdoll)
             {
                 Functions.SetPedCantBeArrestedByPlayer(karen, false);
+                karen.Tasks.Clear();
             }
         }
 
@@ -197,7 +200,7 @@ namespace Social_Justice_Callouts.Callouts
                     phone.Delete();
 
                     karen.Dismiss(); //We will see if just dismissing them is enough to have them leave.
-                    GameFiber.Wait(5000);
+                    GameFiber.Wait(7500);
                     this.calloutStage = Stages.End;
                 }
                 catch (System.Threading.ThreadAbortException e)
@@ -239,7 +242,7 @@ namespace Social_Justice_Callouts.Callouts
                     phone.Delete();
 
                     GameFiber.Wait(500);
-                    karen.Tasks.PlayAnimation("random@domestic", "balcony_fight_idle_female", 1.2f, AnimationFlags.Loop);
+                    karen.Tasks.PlayAnimation("random@domestic", "balcony_fight_idle_female", 1.5f, AnimationFlags.Loop);
 
                     Game.DisplaySubtitle("~b~Officer~w~: If you continue acting hostile you are going to get tazed", 5000);
                     GameFiber.Wait(5000);
@@ -248,7 +251,7 @@ namespace Social_Justice_Callouts.Callouts
                     karen.Tasks.Clear();
                     GameFiber.Wait(300);
                     karen.Tasks.Flee(Game.LocalPlayer.Character, 150f, 20000);
-                    GameFiber.Wait(5000);
+                    GameFiber.Wait(12000);
                     this.calloutStage = Stages.End;
                 }
                 catch (System.Threading.ThreadAbortException e)
@@ -284,7 +287,7 @@ namespace Social_Justice_Callouts.Callouts
                     phone.Delete();
 
                     GameFiber.Wait(500);
-                    karen.Tasks.PlayAnimation("random@domestic", "balcony_fight_idle_female", 1.2f, AnimationFlags.Loop);
+                    karen.Tasks.PlayAnimation("random@domestic", "balcony_fight_idle_female", 1.5f, AnimationFlags.Loop);
 
                     Game.DisplaySubtitle("~b~Officer~w~: If you continue acting hostile you are going to get tazed", 5000);
                     GameFiber.Wait(5000);
@@ -334,10 +337,11 @@ namespace Social_Justice_Callouts.Callouts
 
         public override void End()
         {
+            this.Code4();
             if (karen.Exists())
             {
                 if (karen.IsDead)
-                    karen.Delete();
+                    karen.Dismiss();
                 else if (!Functions.IsPedArrested(karen))
                     karen.Dismiss();
             }
@@ -345,6 +349,34 @@ namespace Social_Justice_Callouts.Callouts
 
             if (karenBlip.Exists()) karenBlip.Delete();
             base.End();
+        }
+
+        private void Code4()
+        {
+            //Thanks to Albo1125 for the source code on how he did his Code 4's. This function
+            // was heavily influenced by that.
+            // https://github.com/Albo1125/Assorted-Callouts/blob/master/AssortedCallouts/Callouts/PersonWithKnife.cs#L499
+            string msg = "CODE 4";
+            if (karen.Exists())
+            {
+                if (Functions.IsPedArrested(karen))
+                {
+                    GameFiber.Wait(2500);
+                    msg = "The suspect is ~g~under arrest~s~. ";
+                }
+                else if (karen.IsDead)
+                {
+                    GameFiber.Wait(2500);
+                    msg = "The suspect is ~o~dead~s~. ";
+                } 
+                else
+                {
+                    msg = "The suspect left. ";
+                }
+            }
+            msg += "We are ~g~CODE 4~s~.";
+            Game.DisplayNotification("3dtextures", "mpgroundlogo_cops", "Irritated Customer", "Customer vs Store Clerk", msg);
+            Functions.PlayScannerAudio("ATTENTION_THIS_IS_DISPATCH_HIGH WE_ARE_CODE FOUR NO_FURTHER_UNITS_REQUIRED");
         }
     }
 }
